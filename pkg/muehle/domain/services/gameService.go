@@ -282,9 +282,9 @@ func (gameService *GameService) canCurrentPlayerMove() {
 
 	if player.Color == entities.ColorWhite {
 		gameService.Game.State = entities.GameStateWinBlack
+	} else {
+		gameService.Game.State = entities.GameStateWinWhite
 	}
-
-	gameService.Game.State = entities.GameStateWinWhite
 }
 
 func (gameService *GameService) getPlayerIndexBySecretCode(secretCode string) int {
