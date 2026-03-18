@@ -1,0 +1,18 @@
+# Go
+*.exe
+*.test
+*.out
+vendor/
+
+# IDE / OS
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+
+# Env
+.env
+.env.*
+specs/001-rest-routing-cleanup
+.specify
+.cursor
