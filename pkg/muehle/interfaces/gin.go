@@ -1,6 +1,7 @@
 package interfaces
 
 import (
+	"io/fs"
 	"marluxgithub/muehle/pkg/muehle/application"
 	"net/http"
 	"strconv"
@@ -24,6 +25,18 @@ func (client *Client) Start() {
 }
 
 func (client *Client) generateRouting(router *gin.Engine) {
+	router.GET("/openapi.yaml", func(c *gin.Context) {
+		c.Data(http.StatusOK, "application/yaml", openAPISpec)
+	})
+
+	swaggerFS, err := fs.Sub(swaggerUIStatic, "swaggerui")
+	if err == nil {
+		router.GET("/swagger", func(c *gin.Context) {
+			c.Redirect(http.StatusFound, "/swagger/")
+		})
+		router.StaticFS("/swagger", http.FS(swaggerFS))
+	}
+
 	router.POST("/games", client.postGames)
 
 	games := router.Group("/games/:gameId")

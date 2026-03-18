@@ -91,8 +91,8 @@ func TestRoughGameFlow_PlaceStonesAlternating(t *testing.T) {
 	var board struct {
 		Board struct {
 			Fields []struct {
-				Index int    `json:"Index"`
-				Color int    `json:"Color"` // JSON numbers for enum
+				Index int `json:"Index"`
+				Color int `json:"Color"` // JSON numbers for enum
 			} `json:"Fields"`
 		} `json:"board"`
 	}
@@ -108,4 +108,39 @@ func TestRoughGameFlow_PlaceStonesAlternating(t *testing.T) {
 	}
 
 	t.Logf("OK: game=%s…, State=%s, %d Steine auf dem Brett", gameID[:8], state.State, occupied)
+}
+
+func TestOpenAPIAndSwaggerRoutes(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	c := NewClient()
+	r := gin.New()
+	r.Use(c.CORS)
+	c.generateRouting(r)
+
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/openapi.yaml", nil))
+	if w.Code != http.StatusOK {
+		t.Fatalf("GET /openapi.yaml: %d", w.Code)
+	}
+	if ct := w.Header().Get("Content-Type"); ct != "application/yaml" {
+		t.Errorf("Content-Type: got %q want application/yaml", ct)
+	}
+	if len(w.Body.Bytes()) < 100 || !strings.Contains(w.Body.String(), "openapi:") {
+		t.Fatal("openapi.yaml body invalid")
+	}
+
+	w2 := httptest.NewRecorder()
+	r.ServeHTTP(w2, httptest.NewRequest(http.MethodGet, "/swagger/", nil))
+	if w2.Code != http.StatusOK {
+		t.Fatalf("GET /swagger/: %d", w2.Code)
+	}
+	if !strings.Contains(w2.Body.String(), "swagger-ui") {
+		t.Fatal("swagger index should reference swagger-ui")
+	}
+
+	w3 := httptest.NewRecorder()
+	r.ServeHTTP(w3, httptest.NewRequest(http.MethodGet, "/swagger", nil))
+	if w3.Code != http.StatusFound || w3.Header().Get("Location") != "/swagger/" {
+		t.Fatalf("GET /swagger redirect: %d loc=%q", w3.Code, w3.Header().Get("Location"))
+	}
 }
