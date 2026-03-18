@@ -4,6 +4,8 @@ info:
   description: |
     REST-Schnittstelle für die Mühle-Spielsession. Spiel anlegen, Spieler
     registrieren, Züge ausführen, Brett und Zustand lesen.
+    Pro Server-Prozess können beliebig viele Partien parallel laufen; jede Partie
+    hat eine eigene `gameId` (UUID), alle Aktionen sind pro Partie isoliert.
   version: 1.0.0
 
 servers:
@@ -26,6 +28,9 @@ paths:
   /games:
     post:
       summary: Neues Spiel anlegen
+      description: |
+        Erzeugt eine neue Partie. Mehrfaches Aufrufen legt mehrere unabhängige
+        Spiele an (jeweils neue UUID in der Antwort).
       operationId: createGame
       responses:
         "201":

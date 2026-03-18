@@ -19,3 +19,7 @@
 - Ablauf Spiel anlegen: [`specs/001-rest-routing-cleanup/quickstart.md`](../specs/001-rest-routing-cleanup/quickstart.md)
 
 Kurz: `POST /games` → leeres Spiel → Spieler unter `/games/{id}/players` → Züge unter `/games/{id}/moves`.
+
+## Mehrere Partien parallel
+
+Jeder Aufruf von **`POST /games`** legt eine **neue**, unabhängige Partie an (neue `id` im JSON). Mehrere Gruppen können gleichzeitig spielen, solange jede ihre eigene **`gameId`** in allen URLs verwendet. Partien beeinflussen sich nicht gegenseitig.
