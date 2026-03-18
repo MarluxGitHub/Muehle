@@ -7,6 +7,14 @@ import (
 
 type BoardService struct{}
 
+// millLines: alle 16 geraden Linien (geschlossene Mühlen) des Standard-Bretts.
+var millLines = [][]int{
+	{0, 1, 2}, {3, 4, 5}, {6, 7, 8}, {9, 10, 11}, {12, 13, 14}, {15, 16, 17},
+	{18, 19, 20}, {21, 22, 23},
+	{0, 9, 21}, {3, 10, 18}, {6, 11, 15}, {1, 4, 7}, {16, 19, 22},
+	{8, 12, 17}, {5, 13, 20}, {2, 14, 23},
+}
+
 func (boardService *BoardService) CreateBoard() entities.Board {
 	fields := make([]entities.Field, 24)
 
@@ -57,36 +65,42 @@ func (boardService *BoardService) CreateNeighbors(board entities.Board) entities
 }
 
 func (boardService *BoardService) HasPlayerThreeStones(board entities.Board, fieldIndex int, playerColor entities.Color) bool {
-	millCombination := [][]int{
-		{0, 1, 2},
-		{3, 4, 5},
-		{6, 7, 8},
-		{9, 10, 11},
-		{12, 13, 14},
-		{15, 16, 17},
-		{18, 19, 20},
-		{21, 22, 23},
-
-		{0, 9, 21},
-		{3, 10, 18},
-		{6, 11, 15},
-		{1, 4, 7},
-		{16, 19, 22},
-		{8, 12, 17},
-		{5, 13, 20},
-		{2, 14, 23},
-	}
-
-	for _, combination := range millCombination {
-		// fieldIndex is in combination
-		if slices.Contains(combination, fieldIndex) {
-			// check if the combination is a mill
-			if board.Fields[combination[0]].Color == playerColor && board.Fields[combination[1]].Color == playerColor && board.Fields[combination[2]].Color == playerColor {
+	for _, line := range millLines {
+		if slices.Contains(line, fieldIndex) {
+			if board.Fields[line[0]].Color == playerColor && board.Fields[line[1]].Color == playerColor && board.Fields[line[2]].Color == playerColor {
 				return true
 			}
 		}
 	}
+	return false
+}
 
+// IsFieldPartOfClosedMill: Feld trägt color und liegt auf mindestens einer vollen Mühle dieser Farbe.
+func (boardService *BoardService) IsFieldPartOfClosedMill(board entities.Board, fieldIndex int, color entities.Color) bool {
+	if fieldIndex < 0 || fieldIndex >= len(board.Fields) || board.Fields[fieldIndex].Color != color {
+		return false
+	}
+	for _, line := range millLines {
+		if !slices.Contains(line, fieldIndex) {
+			continue
+		}
+		if board.Fields[line[0]].Color == color && board.Fields[line[1]].Color == color && board.Fields[line[2]].Color == color {
+			return true
+		}
+	}
+	return false
+}
+
+// EnemyHasStoneOutsideMill: Der Gegner hat mindestens einen Stein, der in keiner geschlossenen Mühle liegt.
+func (boardService *BoardService) EnemyHasStoneOutsideMill(board entities.Board, enemyColor entities.Color) bool {
+	for i := range board.Fields {
+		if board.Fields[i].Color != enemyColor {
+			continue
+		}
+		if !boardService.IsFieldPartOfClosedMill(board, i, enemyColor) {
+			return true
+		}
+	}
 	return false
 }
 

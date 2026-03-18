@@ -220,6 +220,13 @@ func (gameService *GameService) RemoveStone(fieldIndex int, secretCode string) e
 		return errors.New("field is not owned by enemy")
 	}
 
+	enemyColor := gameService.Game.Players[enemyIndex].Color
+	if gameService.BoardService.EnemyHasStoneOutsideMill(gameService.Game.Board, enemyColor) {
+		if gameService.BoardService.IsFieldPartOfClosedMill(gameService.Game.Board, fieldIndex, enemyColor) {
+			return errors.New("cannot remove stone from mill")
+		}
+	}
+
 	gameService.Game.Board.Fields[fieldIndex].Color = entities.ColorUnknown
 
 	gameService.Game.Players[enemyIndex].Stones--
