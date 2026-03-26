@@ -287,7 +287,9 @@ func TestOpenAPIAndSwaggerRoutes(t *testing.T) {
 
 	w3 := httptest.NewRecorder()
 	r.ServeHTTP(w3, httptest.NewRequest(http.MethodGet, "/swagger", nil))
-	if w3.Code != http.StatusFound || w3.Header().Get("Location") != "/swagger/" {
-		t.Fatalf("GET /swagger redirect: %d loc=%q", w3.Code, w3.Header().Get("Location"))
+	loc := w3.Header().Get("Location")
+	locOK := loc == "/swagger/" || strings.HasSuffix(loc, "/swagger/")
+	if w3.Code != http.StatusFound || !locOK {
+		t.Fatalf("GET /swagger redirect: %d loc=%q", w3.Code, loc)
 	}
 }

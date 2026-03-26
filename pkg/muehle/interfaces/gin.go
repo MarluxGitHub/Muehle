@@ -2,6 +2,7 @@ package interfaces
 
 import (
 	"io/fs"
+	"log"
 	"marluxgithub/muehle/pkg/muehle/application"
 	"net/http"
 	"strconv"
@@ -21,7 +22,7 @@ func (client *Client) Start() {
 	router.Use(client.CORS)
 
 	client.generateRouting(router)
-	router.Run(":8080")
+	router.Run(":40000")
 }
 
 func (client *Client) generateRouting(router *gin.Engine) {
@@ -30,9 +31,21 @@ func (client *Client) generateRouting(router *gin.Engine) {
 	})
 
 	swaggerFS, err := fs.Sub(swaggerUIStatic, "swaggerui")
-	if err == nil {
+	if err != nil {
+		log.Printf("muehle: Swagger-UI nicht gemountet (embed/swaggerui): %v", err)
+	} else {
 		router.GET("/swagger", func(c *gin.Context) {
-			c.Redirect(http.StatusFound, "/swagger/")
+			// Absolutes Location vermeidet Clients, die relative Redirects falsch auflösen.
+			scheme := "http"
+			if c.Request.TLS != nil {
+				scheme = "https"
+			}
+			host := c.Request.Host
+			if host == "" {
+				c.Redirect(http.StatusFound, "/swagger/")
+				return
+			}
+			c.Redirect(http.StatusFound, scheme+"://"+host+"/swagger/")
 		})
 		router.StaticFS("/swagger", http.FS(swaggerFS))
 	}
