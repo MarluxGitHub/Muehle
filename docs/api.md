@@ -9,8 +9,7 @@
 
 ## Swagger UI
 
-- **Interaktive Doku (Browser):** `http://localhost:8080/swagger/`  
-  Kurz: `http://localhost:8080/swagger` → Redirect auf `/swagger/`.  
+- **Interaktive Doku (Browser):** `http://localhost:8080/swagger` (HTML direkt, kein Redirect; Assets unter `/swagger-static/…`).  
   Lädt dieselbe OpenAPI wie oben; **Try it out** gegen denselben Host möglich.
 
 ## Weitere Doku

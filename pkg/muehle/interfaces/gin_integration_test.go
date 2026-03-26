@@ -277,9 +277,9 @@ func TestOpenAPIAndSwaggerRoutes(t *testing.T) {
 	}
 
 	w2 := httptest.NewRecorder()
-	r.ServeHTTP(w2, httptest.NewRequest(http.MethodGet, "/swagger/", nil))
+	r.ServeHTTP(w2, httptest.NewRequest(http.MethodGet, "/swagger", nil))
 	if w2.Code != http.StatusOK {
-		t.Fatalf("GET /swagger/: %d", w2.Code)
+		t.Fatalf("GET /swagger: %d", w2.Code)
 	}
 	if !strings.Contains(w2.Body.String(), "swagger-ui") {
 		t.Fatal("swagger index should reference swagger-ui")
@@ -287,9 +287,16 @@ func TestOpenAPIAndSwaggerRoutes(t *testing.T) {
 
 	w3 := httptest.NewRecorder()
 	r.ServeHTTP(w3, httptest.NewRequest(http.MethodGet, "/swagger", nil))
-	loc := w3.Header().Get("Location")
-	locOK := loc == "/swagger/" || strings.HasSuffix(loc, "/swagger/")
-	if w3.Code != http.StatusFound || !locOK {
-		t.Fatalf("GET /swagger redirect: %d loc=%q", w3.Code, loc)
+	if w3.Code != http.StatusOK {
+		t.Fatalf("GET /swagger: %d", w3.Code)
+	}
+	if !strings.Contains(w3.Body.String(), "swagger-ui") {
+		t.Fatal("GET /swagger should serve Swagger UI HTML")
+	}
+
+	w4 := httptest.NewRecorder()
+	r.ServeHTTP(w4, httptest.NewRequest(http.MethodGet, "/health", nil))
+	if w4.Code != http.StatusOK || w4.Body.String() != "ok" {
+		t.Fatalf("GET /health: %d %q", w4.Code, w4.Body.String())
 	}
 }

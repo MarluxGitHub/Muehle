@@ -18,14 +18,25 @@ type Client struct {
 
 func (client *Client) Start() {
 	router := gin.Default()
+	if err := router.SetTrustedProxies(nil); err != nil {
+		log.Fatalf("muehle: SetTrustedProxies: %v", err)
+	}
 
 	router.Use(client.CORS)
 
 	client.generateRouting(router)
-	router.Run(":40000")
+	listen := "0.0.0.0:40000"
+	log.Printf("muehle: lausche auf http://%s — Diagnose: GET /health, GET /openapi.yaml, GET /swagger", listen)
+	if err := router.Run(listen); err != nil {
+		log.Fatalf("muehle: %v", err)
+	}
 }
 
 func (client *Client) generateRouting(router *gin.Engine) {
+	router.GET("/health", func(c *gin.Context) {
+		c.String(http.StatusOK, "ok")
+	})
+
 	router.GET("/openapi.yaml", func(c *gin.Context) {
 		c.Data(http.StatusOK, "application/yaml", openAPISpec)
 	})
@@ -34,20 +45,17 @@ func (client *Client) generateRouting(router *gin.Engine) {
 	if err != nil {
 		log.Printf("muehle: Swagger-UI nicht gemountet (embed/swaggerui): %v", err)
 	} else {
-		router.GET("/swagger", func(c *gin.Context) {
-			// Absolutes Location vermeidet Clients, die relative Redirects falsch auflösen.
-			scheme := "http"
-			if c.Request.TLS != nil {
-				scheme = "https"
-			}
-			host := c.Request.Host
-			if host == "" {
-				c.Redirect(http.StatusFound, "/swagger/")
-				return
-			}
-			c.Redirect(http.StatusFound, scheme+"://"+host+"/swagger/")
-		})
-		router.StaticFS("/swagger", http.FS(swaggerFS))
+		indexHTML, err := fs.ReadFile(swaggerFS, "index.html")
+		if err != nil {
+			log.Printf("muehle: Swagger index.html: %v", err)
+		} else {
+			// Kein Redirect (VPN/Proxy): HTML direkt unter /swagger.
+			// Assets unter /swagger-static — vermeidet Gin-1.11-Konflikt /swagger + /swagger/*filepath.
+			router.GET("/swagger", func(c *gin.Context) {
+				c.Data(http.StatusOK, "text/html; charset=utf-8", indexHTML)
+			})
+		}
+		router.StaticFS("/swagger-static", http.FS(swaggerFS))
 	}
 
 	router.POST("/games", client.postGames)
