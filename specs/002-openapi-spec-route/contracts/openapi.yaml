@@ -72,12 +72,17 @@ paths:
             application/json:
               schema:
                 type: object
+                required: [message, secret, color]
                 properties:
                   message:
                     type: string
                   secret:
                     type: string
                     description: Geheimcode für Züge
+                  color:
+                    type: string
+                    enum: [White, Black]
+                    description: Zugewiesene Spielerfarbe (erster Spieler Weiß, zweiter Schwarz)
         "404":
           $ref: "#/components/responses/GameNotFound"
         "500":

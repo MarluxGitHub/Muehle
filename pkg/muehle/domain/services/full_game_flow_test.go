@@ -9,11 +9,11 @@ import (
 func TestFullGame_PlacingPhaseToMovingStone(t *testing.T) {
 	gs := NewGameService()
 	gs.CreateGame()
-	_, err := gs.AddPlayer(entities.Player{Name: "A"})
+	_, _, err := gs.AddPlayer(entities.Player{Name: "A"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = gs.AddPlayer(entities.Player{Name: "B"})
+	_, _, err = gs.AddPlayer(entities.Player{Name: "B"})
 	if err != nil {
 		t.Fatal(err)
 	}

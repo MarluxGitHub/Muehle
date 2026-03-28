@@ -66,9 +66,9 @@ func (gameService *GameService) CreateFakeGame() {
 	gameService.Game.Board.Fields[11].Color = entities.ColorBlack
 }
 
-func (gameService *GameService) AddPlayer(player entities.Player) (string, error) {
+func (gameService *GameService) AddPlayer(player entities.Player) (string, entities.Color, error) {
 	if len(gameService.Game.Players) >= 2 {
-		return "", errors.New("game is full")
+		return "", entities.ColorUnknown, errors.New("game is full")
 	}
 
 	secretCode := genSecretCode()
@@ -86,7 +86,7 @@ func (gameService *GameService) AddPlayer(player entities.Player) (string, error
 		gameService.Game.State = entities.GameStatePuttingStone
 	}
 
-	return secretCode, nil
+	return secretCode, player.Color, nil
 }
 
 func (gameService *GameService) GetGameState() entities.GameState {

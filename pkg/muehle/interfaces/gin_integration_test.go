@@ -88,13 +88,26 @@ func TestConcurrentGames_FiveGamesMoveInFirstOnlyOthersUnchanged(t *testing.T) {
 		}
 		var p1 struct {
 			Secret string `json:"secret"`
+			Color  string `json:"color"`
 		}
 		if err := json.Unmarshal(w1.Body.Bytes(), &p1); err != nil {
 			t.Fatal(err)
 		}
+		if p1.Color != "White" {
+			t.Fatalf("game %d: first player color %q, want White", i, p1.Color)
+		}
 		w2 := postForm(base+"/players", url.Values{"playerName": {"Schwarz"}})
 		if w2.Code != http.StatusOK {
 			t.Fatalf("player2 game %d: %d %s", i, w2.Code, w2.Body.String())
+		}
+		var p2 struct {
+			Color string `json:"color"`
+		}
+		if err := json.Unmarshal(w2.Body.Bytes(), &p2); err != nil {
+			t.Fatal(err)
+		}
+		if p2.Color != "Black" {
+			t.Fatalf("game %d: second player color %q, want Black", i, p2.Color)
 		}
 		if i == 0 {
 			whiteSecret = p1.Secret

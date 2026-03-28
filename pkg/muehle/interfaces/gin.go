@@ -92,12 +92,12 @@ func (client *Client) postGamePlayers(c *gin.Context) {
 		return
 	}
 	playerName := c.PostForm("playerName")
-	secret, err := app.AddPlayer(playerName)
+	secret, color, err := app.AddPlayer(playerName)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Player added", "secret": secret})
+	c.JSON(http.StatusOK, gin.H{"message": "Player added", "secret": secret, "color": color})
 }
 
 func (client *Client) postGameMoves(c *gin.Context) {

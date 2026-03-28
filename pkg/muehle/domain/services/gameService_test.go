@@ -8,7 +8,7 @@ import (
 func TestRemoveStone_FromMillRejectedWhenEnemyHasFreeStone(t *testing.T) {
 	gs := NewGameService()
 	gs.CreateGame()
-	sw, _ := gs.AddPlayer(entities.Player{Name: "W"})
+	sw, _, _ := gs.AddPlayer(entities.Player{Name: "W"})
 	gs.AddPlayer(entities.Player{Name: "B"})
 	for i := range gs.Game.Board.Fields {
 		gs.Game.Board.Fields[i].Color = entities.ColorUnknown
@@ -41,7 +41,7 @@ func TestRemoveStone_FromMillRejectedWhenEnemyHasFreeStone(t *testing.T) {
 func TestRemoveStone_FromMillWhenAllEnemyStonesInMills(t *testing.T) {
 	gs := NewGameService()
 	gs.CreateGame()
-	sw, _ := gs.AddPlayer(entities.Player{Name: "W"})
+	sw, _, _ := gs.AddPlayer(entities.Player{Name: "W"})
 	gs.AddPlayer(entities.Player{Name: "B"})
 	for i := range gs.Game.Board.Fields {
 		gs.Game.Board.Fields[i].Color = entities.ColorUnknown

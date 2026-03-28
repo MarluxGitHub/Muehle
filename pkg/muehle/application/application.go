@@ -14,13 +14,15 @@ func (application *Application) CreateGame() error {
 	return nil
 }
 
-func (application *Application) AddPlayer(playerName string) (string, error) {
-
+func (application *Application) AddPlayer(playerName string) (secret string, color string, err error) {
 	player := entities.Player{
 		Name: playerName,
 	}
-
-	return application.GameService.AddPlayer(player)
+	s, c, e := application.GameService.AddPlayer(player)
+	if e != nil {
+		return "", "", e
+	}
+	return s, c.String(), nil
 }
 
 func (application *Application) MovePutStone(fieldIndex int, secretCode string) error {
