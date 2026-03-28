@@ -37,7 +37,7 @@ func (gameService *GameService) CreateFakeGame() {
 		Secret:       "1",
 		Color:        entities.ColorWhite,
 		Stones:       9,
-		PuttedStones: 0,
+		PuttedStones: 9,
 		IsJumping:    false,
 	})
 
@@ -47,7 +47,7 @@ func (gameService *GameService) CreateFakeGame() {
 		Secret:       "2",
 		Color:        entities.ColorBlack,
 		Stones:       3,
-		PuttedStones: 0,
+		PuttedStones: 9,
 		IsJumping:    false,
 	})
 
@@ -95,6 +95,20 @@ func (gameService *GameService) GetGameState() entities.GameState {
 
 func (gameService *GameService) GetCurrentPlayerColor() entities.Color {
 	return gameService.Game.Players[gameService.Game.CurrentPlayerIndex].Color
+}
+
+// PlayerPublicInfo enthält nur Name und Farbe (kein Secret) für die HTTP-API.
+type PlayerPublicInfo struct {
+	Name  string `json:"name"`
+	Color string `json:"color"`
+}
+
+func (gameService *GameService) GetPlayersPublic() []PlayerPublicInfo {
+	out := make([]PlayerPublicInfo, 0, len(gameService.Game.Players))
+	for _, p := range gameService.Game.Players {
+		out = append(out, PlayerPublicInfo{Name: p.Name, Color: p.Color.String()})
+	}
+	return out
 }
 
 func (gameService *GameService) MovePutStone(fieldIndex int, secretCode string) error {
@@ -231,7 +245,10 @@ func (gameService *GameService) RemoveStone(fieldIndex int, secretCode string) e
 
 	gameService.Game.Players[enemyIndex].Stones--
 
-	if gameService.Game.Players[enemyIndex].Stones <= 2 {
+	// Sieg durch zu wenig Steine nur, wenn der Gegner alle 9 Steine gesetzt hat
+	// (in der Setzphase können noch Handsteine folgen — dann zählt „≤2 auf dem Brett“ nicht).
+	if gameService.Game.Players[enemyIndex].PuttedStones == 9 &&
+		gameService.Game.Players[enemyIndex].Stones <= 2 {
 		if gameService.Game.Players[enemyIndex].Color == entities.ColorWhite {
 			gameService.Game.State = entities.GameStateWinBlack
 		} else {
@@ -264,6 +281,12 @@ func (gameService *GameService) RemoveStone(fieldIndex int, secretCode string) e
 }
 
 func (gameService *GameService) canCurrentPlayerMove() {
+	// Nur in der Zugphase relevant: In der Setzphase werden Steine auf freie Felder gelegt,
+	// nicht entlang Nachbarn — „kein Nachbar frei“ darf keinen Sieg auslösen.
+	if gameService.Game.State != entities.GameStateMovingStone {
+		return
+	}
+
 	player := gameService.Game.Players[gameService.Game.CurrentPlayerIndex]
 
 	if player.IsJumping {

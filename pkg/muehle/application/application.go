@@ -49,6 +49,10 @@ func (application *Application) GetBoard() entities.Board {
 	return application.GameService.GetBoard()
 }
 
+func (application *Application) GetPlayersPublic() []services.PlayerPublicInfo {
+	return application.GameService.GetPlayersPublic()
+}
+
 func NewApplication() *Application {
 	return &Application{
 		GameService: services.NewGameService(),

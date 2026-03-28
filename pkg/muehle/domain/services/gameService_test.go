@@ -17,6 +17,7 @@ func TestRemoveStone_FromMillRejectedWhenEnemyHasFreeStone(t *testing.T) {
 		gs.Game.Board.Fields[i].Color = entities.ColorBlack
 	}
 	gs.Game.Players[1].Stones = 4
+	gs.Game.Players[1].PuttedStones = 9
 	gs.Game.State = entities.GameStateRemovingStone
 	gs.Game.StateBeforeRemovingStone = entities.GameStateMovingStone
 	gs.Game.CurrentPlayerIndex = 0
@@ -50,6 +51,7 @@ func TestRemoveStone_FromMillWhenAllEnemyStonesInMills(t *testing.T) {
 		gs.Game.Board.Fields[i].Color = entities.ColorBlack
 	}
 	gs.Game.Players[1].Stones = 3
+	gs.Game.Players[1].PuttedStones = 9
 	gs.Game.State = entities.GameStateRemovingStone
 	gs.Game.StateBeforeRemovingStone = entities.GameStateMovingStone
 	gs.Game.CurrentPlayerIndex = 0
@@ -60,5 +62,48 @@ func TestRemoveStone_FromMillWhenAllEnemyStonesInMills(t *testing.T) {
 	}
 	if gs.Game.Board.Fields[10].Color != entities.ColorUnknown {
 		t.Fatal("stone 10 removed")
+	}
+}
+
+func TestRemoveStone_NoWinWhileEnemyStillHasStonesToPlace(t *testing.T) {
+	gs := NewGameService()
+	gs.CreateGame()
+	sw, _, _ := gs.AddPlayer(entities.Player{Name: "W"})
+	_, _, _ = gs.AddPlayer(entities.Player{Name: "B"})
+	for i := range gs.Game.Board.Fields {
+		gs.Game.Board.Fields[i].Color = entities.ColorUnknown
+	}
+	gs.Game.Board.Fields[20].Color = entities.ColorBlack
+	gs.Game.Players[1].Stones = 3
+	gs.Game.Players[1].PuttedStones = 3
+	gs.Game.CurrentPlayerIndex = 0
+	gs.Game.State = entities.GameStateRemovingStone
+	gs.Game.StateBeforeRemovingStone = entities.GameStatePuttingStone
+
+	if err := gs.RemoveStone(20, sw); err != nil {
+		t.Fatal(err)
+	}
+	if gs.Game.State == entities.GameStateWinWhite || gs.Game.State == entities.GameStateWinBlack {
+		t.Fatalf("no win while opponent still has placements, got %s", gs.Game.State.String())
+	}
+}
+
+func TestCanCurrentPlayerMove_PuttingStoneDoesNotAwardWin(t *testing.T) {
+	gs := NewGameService()
+	gs.CreateGame()
+	_, _, _ = gs.AddPlayer(entities.Player{Name: "W"})
+	_, _, _ = gs.AddPlayer(entities.Player{Name: "B"})
+	for i := range gs.Game.Board.Fields {
+		gs.Game.Board.Fields[i].Color = entities.ColorUnknown
+	}
+	gs.Game.Board.Fields[0].Color = entities.ColorWhite
+	gs.Game.Board.Fields[1].Color = entities.ColorBlack
+	gs.Game.Board.Fields[9].Color = entities.ColorBlack
+	gs.Game.CurrentPlayerIndex = 0
+	gs.Game.State = entities.GameStatePuttingStone
+
+	gs.canCurrentPlayerMove()
+	if gs.Game.State == entities.GameStateWinBlack || gs.Game.State == entities.GameStateWinWhite {
+		t.Fatalf("PuttingStone must not use move-immobilization win, got %s", gs.Game.State.String())
 	}
 }

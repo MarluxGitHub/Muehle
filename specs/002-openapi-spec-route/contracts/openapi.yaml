@@ -50,6 +50,26 @@ paths:
                 $ref: "#/components/schemas/Error"
 
   /games/{gameId}/players:
+    get:
+      summary: Spieler mit Namen und Farben
+      operationId: listGamePlayers
+      parameters:
+        - $ref: "#/components/parameters/gameId"
+      responses:
+        "200":
+          description: Spielerliste (kann leer sein)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [players]
+                properties:
+                  players:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PlayerPublic"
+        "404":
+          $ref: "#/components/responses/GameNotFound"
     post:
       summary: Spieler zum Spiel hinzufügen
       operationId: addPlayer
@@ -209,6 +229,16 @@ components:
         format: uuid
 
   schemas:
+    PlayerPublic:
+      type: object
+      required: [name, color]
+      properties:
+        name:
+          type: string
+        color:
+          type: string
+          enum: [White, Black]
+
     Error:
       type: object
       properties:

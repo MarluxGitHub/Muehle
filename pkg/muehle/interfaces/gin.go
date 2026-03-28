@@ -61,6 +61,7 @@ func (client *Client) generateRouting(router *gin.Engine) {
 	router.POST("/games", client.postGames)
 
 	games := router.Group("/games/:gameId")
+	games.GET("/players", client.listGamePlayers)
 	games.POST("/players", client.postGamePlayers)
 	games.POST("/moves", client.postGameMoves)
 	games.GET("/state", client.getGameState)
@@ -84,6 +85,14 @@ func (client *Client) postGames(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{"message": "Game created", "id": id})
+}
+
+func (client *Client) listGamePlayers(c *gin.Context) {
+	app, ok := client.resolveGame(c)
+	if !ok {
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"players": app.GetPlayersPublic()})
 }
 
 func (client *Client) postGamePlayers(c *gin.Context) {
